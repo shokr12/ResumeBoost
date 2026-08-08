@@ -1,5 +1,5 @@
 // API base endpoint
-const API_URL = "https://resumeboost-dsqc.onrender.com/api/resume/analyze";
+const API_URL = "https://resumeboost-ddiq.onrender.com/api/resume/analyze";
 
 // Document Elements
 const form = document.getElementById("analyzer-form");
