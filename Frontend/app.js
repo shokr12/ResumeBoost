@@ -305,19 +305,27 @@ function animateScore(targetScore) {
 function renderBadges(container, list, isMatching) {
   container.innerHTML = "";
   if (!list || list.length === 0) {
-    container.innerHTML = `<span class="px-2.5 py-1 bg-surface-variant/5 text-surface-variant/50 text-xs font-medium rounded border border-surface-variant/10">None identified</span>`;
+    container.innerHTML = `<span class="px-3 py-1 bg-slate-800/40 text-slate-400 text-xs font-medium rounded-md border border-slate-700/50">None identified</span>`;
     return;
   }
   list.forEach((item) => {
-    const badge = document.createElement("span");
+    const badge = document.createElement("button");
+    badge.type = "button";
+    badge.title = isMatching ? item : `Click to copy "${item}"`;
     if (isMatching) {
       badge.className =
-        "px-2.5 py-1 bg-primary-container/10 text-primary-fixed text-xs font-medium rounded border border-primary-container/30 flex items-center gap-1 shadow-sm";
-      badge.innerHTML = `<span class="material-symbols-outlined text-[14px]">check_circle</span> ${item}`;
+        "px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-md border border-emerald-500/20 flex items-center gap-1.5 shadow-sm hover:border-emerald-500/40 transition-colors cursor-default";
+      badge.innerHTML = `<span class="material-symbols-outlined text-[14px] text-emerald-400">check_circle</span> ${item}`;
     } else {
       badge.className =
-        "px-2.5 py-1 bg-error/10 text-error-container text-xs font-medium rounded border border-error/30 flex items-center gap-1 shadow-sm";
-      badge.innerHTML = `<span class="material-symbols-outlined text-[14px]">cancel</span> ${item}`;
+        "px-3 py-1 bg-rose-500/10 text-rose-300 text-xs font-medium rounded-md border border-rose-500/25 flex items-center gap-1.5 shadow-sm hover:bg-rose-500/20 hover:border-rose-500/40 transition-all active:scale-95 cursor-pointer group";
+      badge.innerHTML = `<span class="material-symbols-outlined text-[14px] text-rose-400 group-hover:rotate-12 transition-transform">add_circle</span> ${item} <span class="text-[10px] opacity-60 ml-0.5">(Copy)</span>`;
+      badge.addEventListener("click", () => {
+        navigator.clipboard.writeText(item);
+        const originalText = badge.innerHTML;
+        badge.innerHTML = `<span class="material-symbols-outlined text-[14px]">done</span> Copied!`;
+        setTimeout(() => { badge.innerHTML = originalText; }, 1800);
+      });
     }
     container.appendChild(badge);
   });
@@ -326,12 +334,13 @@ function renderBadges(container, list, isMatching) {
 function renderList(container, list) {
   container.innerHTML = "";
   if (!list || list.length === 0) {
-    container.innerHTML = `<li>No details provided</li>`;
+    container.innerHTML = `<li class="text-slate-400 text-xs">No specific details provided</li>`;
     return;
   }
   list.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = item;
+    li.className = "text-slate-300 text-xs leading-relaxed flex items-start gap-2";
+    li.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0 mt-1.5"></span><span>${item}</span>`;
     container.appendChild(li);
   });
 }
@@ -340,22 +349,15 @@ function renderSuggestions(list) {
   suggestionsList.innerHTML = "";
 
   if (!list || list.length === 0) {
-    suggestionsList.innerHTML = `<p class="text-xs text-surface-variant">No suggestions provided.</p>`;
+    suggestionsList.innerHTML = `<p class="text-xs text-slate-400">No suggestions provided.</p>`;
     return;
   }
 
-  // Draw connector line
-  const connector = document.createElement("div");
-  connector.className =
-    "absolute left-[19px] top-4 bottom-4 w-px bg-surface-variant/20 z-0 hidden sm:block";
-  suggestionsList.appendChild(connector);
-
   list.forEach((step, index) => {
     const stepDiv = document.createElement("div");
-    stepDiv.className = "flex gap-5 items-start relative z-10 group";
+    stepDiv.className = "flex gap-4 items-start relative z-10 group";
 
-    // Parse step text into title and details if colon exists
-    let title = `Recommendation ${index + 1}`;
+    let title = `Optimization Step ${index + 1}`;
     let desc = step;
     const colonIndex = step.indexOf(":");
     if (colonIndex > 0 && colonIndex < 40) {
@@ -364,10 +366,15 @@ function renderSuggestions(list) {
     }
 
     stepDiv.innerHTML = `
-      <div class="w-10 h-10 rounded-full bg-tertiary-container/20 text-tertiary-fixed font-bold flex items-center justify-center shrink-0 border border-tertiary-container/30 shadow-[0_0_15px_rgba(176,144,255,0.2)] group-hover:scale-110 group-hover:bg-tertiary-fixed group-hover:text-black transition-all duration-300">${index + 1}</div>
-      <div class="bg-[#0b0f19]/90 p-5 rounded-lg border border-surface-variant/20 w-full group-hover:border-tertiary-fixed/40 transition-colors">
-        <h4 class="font-label-md text-white text-base font-semibold">${title}</h4>
-        <p class="text-sm text-surface-variant mt-2 leading-relaxed">${desc}</p>
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold flex items-center justify-center shrink-0 border border-emerald-500/20 text-xs group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">${index + 1}</div>
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 w-full group-hover:border-slate-700 transition-colors flex justify-between gap-4">
+        <div>
+          <h4 class="font-medium text-white text-sm font-heading">${title}</h4>
+          <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">${desc}</p>
+        </div>
+        <button type="button" class="shrink-0 p-2 rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors h-fit" title="Copy recommendation text" onclick="navigator.clipboard.writeText('${desc.replace(/'/g, "\\'")}'); this.querySelector('span').textContent='done'; setTimeout(()=>this.querySelector('span').textContent='content_copy', 1500);">
+          <span class="material-symbols-outlined text-sm">content_copy</span>
+        </button>
       </div>
     `;
     suggestionsList.appendChild(stepDiv);
