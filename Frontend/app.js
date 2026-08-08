@@ -138,11 +138,31 @@ form.addEventListener("submit", async (e) => {
   const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
 
   const finishWithError = (msg) => {
+    clearInterval(stepInterval);
     clearTimeout(timeoutId);
     console.error("[ResuBoost] Error:", msg);
     errorMessage.textContent = msg;
     showState(errorState);
   };
+
+  const loadingSubtext = document.getElementById("loading-subtext");
+  if (loadingSubtext) loadingSubtext.textContent = "Connecting to server...";
+
+  let stepIndex = 0;
+  const loadingSteps = [
+    { time: 2000, text: "Waking up server instance..." },
+    { time: 8000, text: "Server active! Extracting text from PDF resume..." },
+    { time: 14000, text: "Analyzing experience & keywords with Gemini AI..." },
+    { time: 25000, text: "Generating ATS score & targeted suggestions..." },
+    { time: 40000, text: "Almost done, finalizing response..." }
+  ];
+
+  const stepInterval = setInterval(() => {
+    if (stepIndex < loadingSteps.length) {
+      if (loadingSubtext) loadingSubtext.textContent = loadingSteps[stepIndex].text;
+      stepIndex++;
+    }
+  }, 5000);
 
   try {
     console.log("[ResuBoost] Sending request to", API_URL);
@@ -151,6 +171,7 @@ form.addEventListener("submit", async (e) => {
       body: formData,
       signal: controller.signal,
     });
+    clearInterval(stepInterval);
     clearTimeout(timeoutId);
     console.log("[ResuBoost] Response status:", response.status);
 
